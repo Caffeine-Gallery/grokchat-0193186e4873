@@ -190,7 +190,36 @@ async function generatePlan(instruction) {
 
 function appendMessage(sender, message) {
     const messageElement = document.createElement('div');
-    messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+    messageElement.className = `message ${sender.toLowerCase()}`;
+    
+    const senderElement = document.createElement('div');
+    senderElement.className = 'sender';
+    senderElement.textContent = sender;
+    
+    const contentElement = document.createElement('div');
+    contentElement.className = 'content';
+    
+    if (sender === 'AI' && message.includes('```')) {
+        const parts = message.split(/(```[\s\S]*?```)/g);
+        parts.forEach(part => {
+            if (part.startsWith('```') && part.endsWith('```')) {
+                const code = part.slice(3, -3);
+                const codeElement = document.createElement('pre');
+                codeElement.className = 'code-block';
+                codeElement.textContent = code;
+                contentElement.appendChild(codeElement);
+            } else {
+                const textElement = document.createElement('p');
+                textElement.textContent = part;
+                contentElement.appendChild(textElement);
+            }
+        });
+    } else {
+        contentElement.textContent = message;
+    }
+    
+    messageElement.appendChild(senderElement);
+    messageElement.appendChild(contentElement);
     chatbox.appendChild(messageElement);
     chatbox.scrollTop = chatbox.scrollHeight;
 }
