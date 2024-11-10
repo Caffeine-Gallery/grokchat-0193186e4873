@@ -1,0 +1,15 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+#chatbox {
+    height: 400px;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+}
+
+#fileContent {
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+}

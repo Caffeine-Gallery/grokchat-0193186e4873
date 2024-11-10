@@ -1,0 +1,10 @@
+service : {
+  addFiles: (vec text) -> (text);
+  chatWithAI: (text) -> (text);
+  createFiles: (text) -> (text);
+  editFiles: (vec text, text) -> (text);
+  generatePlan: (text) -> (text);
+  getLastResponse: () -> (text);
+  resetContext: () -> ();
+  reviewCode: (vec text) -> (text);
+}
