@@ -74,14 +74,54 @@ body {
     color: #333;
 }
 
+.code-wrapper {
+    position: relative;
+    margin-top: 10px;
+}
+
 .code-block {
-    background-color: #f4f4f4;
-    border: 1px solid #ddd;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    border: 1px solid #333;
     border-radius: 4px;
     padding: 10px;
     white-space: pre-wrap;
     word-wrap: break-word;
     font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-x: auto;
+}
+
+.copy-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.copy-button:hover {
+    background-color: #357abd;
+}
+
+/* Syntax highlighting */
+.keyword {
+    color: #569cd6;
+}
+
+.string {
+    color: #ce9178;
+}
+
+.comment {
+    color: #6a9955;
 }
 
 #inputArea {

@@ -206,8 +206,19 @@ function appendMessage(sender, message) {
                 const code = part.slice(3, -3);
                 const codeElement = document.createElement('pre');
                 codeElement.className = 'code-block';
-                codeElement.textContent = code;
-                contentElement.appendChild(codeElement);
+                codeElement.innerHTML = highlightSyntax(code);
+                
+                const copyButton = document.createElement('button');
+                copyButton.className = 'copy-button';
+                copyButton.textContent = 'Copy';
+                copyButton.onclick = () => copyToClipboard(code);
+                
+                const codeWrapper = document.createElement('div');
+                codeWrapper.className = 'code-wrapper';
+                codeWrapper.appendChild(codeElement);
+                codeWrapper.appendChild(copyButton);
+                
+                contentElement.appendChild(codeWrapper);
             } else {
                 const textElement = document.createElement('p');
                 textElement.textContent = part;
@@ -222,6 +233,29 @@ function appendMessage(sender, message) {
     messageElement.appendChild(contentElement);
     chatbox.appendChild(messageElement);
     chatbox.scrollTop = chatbox.scrollHeight;
+}
+
+function highlightSyntax(code) {
+    // This is a basic syntax highlighting function.
+    // You can expand this to cover more programming constructs and languages.
+    const keywords = ['function', 'const', 'let', 'var', 'if', 'else', 'for', 'while', 'return'];
+    const keywordRegex = new RegExp('\\b(' + keywords.join('|') + ')\\b', 'g');
+    const stringRegex = /(".*?"|'.*?'|`.*?`)/g;
+    const commentRegex = /(\/\/.*|\/\*[\s\S]*?\*\/)/g;
+    
+    code = code.replace(keywordRegex, '<span class="keyword">$1</span>');
+    code = code.replace(stringRegex, '<span class="string">$1</span>');
+    code = code.replace(commentRegex, '<span class="comment">$1</span>');
+    
+    return code;
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Code copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
 }
 
 function promptUser(message) {
