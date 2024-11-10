@@ -1,15 +1,83 @@
 body {
     font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+}
+
+#chatInterface {
+    width: 80%;
+    max-width: 600px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
 }
 
 #chatbox {
     height: 400px;
     overflow-y: auto;
-    background-color: #f8f9fa;
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
 }
 
-#fileContent {
-    max-height: 300px;
-    overflow-y: auto;
-    background-color: #f8f9fa;
+#userInput {
+    width: calc(100% - 80px);
+    padding: 10px;
+    border: none;
+    outline: none;
+}
+
+#sendButton {
+    width: 80px;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#sendButton:hover {
+    background-color: #0056b3;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+}
+
+#apiKeyInput {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+#saveApiKey {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#saveApiKey:hover {
+    background-color: #45a049;
 }

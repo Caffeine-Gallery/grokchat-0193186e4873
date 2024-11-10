@@ -4,13 +4,15 @@ import { AuthClient } from "@dfinity/auth-client";
 const chatbox = document.getElementById('chatbox');
 const userInput = document.getElementById('userInput');
 const sendButton = document.getElementById('sendButton');
-const fileContent = document.getElementById('fileContent');
+const apiKeyModal = document.getElementById('apiKeyModal');
+const apiKeyInput = document.getElementById('apiKeyInput');
+const saveApiKeyButton = document.getElementById('saveApiKey');
 
 let authClient;
 let identity;
 
-const apiKey = 'YOUR_XAI_API_KEY_HERE'; // Replace with actual API key
 const baseUrl = 'https://api.x.ai/v1';
+let apiKey = localStorage.getItem('xaiApiKey');
 
 async function initAuth() {
     authClient = await AuthClient.create();
@@ -27,8 +29,24 @@ async function initAuth() {
 
 function handleAuthenticated() {
     console.log("Authenticated");
-    // Enable UI elements or perform post-authentication actions here
+    if (!apiKey) {
+        showApiKeyModal();
+    }
 }
+
+function showApiKeyModal() {
+    apiKeyModal.style.display = 'block';
+}
+
+saveApiKeyButton.addEventListener('click', () => {
+    apiKey = apiKeyInput.value.trim();
+    if (apiKey) {
+        localStorage.setItem('xaiApiKey', apiKey);
+        apiKeyModal.style.display = 'none';
+    } else {
+        alert('Please enter a valid API key');
+    }
+});
 
 sendButton.addEventListener('click', handleUserInput);
 userInput.addEventListener('keypress', (e) => {
@@ -172,6 +190,11 @@ function promptUser(message) {
 }
 
 async function callXAI(prompt) {
+    if (!apiKey) {
+        showApiKeyModal();
+        throw new Error('Please set your X.ai API key first.');
+    }
+
     try {
         const response = await fetch(`${baseUrl}/chat/completions`, {
             method: 'POST',
@@ -189,6 +212,12 @@ async function callXAI(prompt) {
         if (!response.ok) {
             const errorData = await response.text();
             console.error('API Error:', response.status, errorData);
+            if (response.status === 401 || response.status === 403) {
+                localStorage.removeItem('xaiApiKey');
+                apiKey = null;
+                showApiKeyModal();
+                throw new Error('Invalid API key. Please enter a valid API key.');
+            }
             throw new Error(`API request failed: ${response.status} ${response.statusText}`);
         }
 
