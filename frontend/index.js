@@ -6,6 +6,7 @@ const userInput = document.getElementById('userInput');
 const sendButton = document.getElementById('sendButton');
 const apiKeyModal = document.getElementById('apiKeyModal');
 const apiKeyInput = document.getElementById('apiKeyInput');
+const modelSelect = document.getElementById('modelSelect');
 const saveApiKeyButton = document.getElementById('saveApiKey');
 
 let authClient;
@@ -13,6 +14,7 @@ let identity;
 
 const baseUrl = 'https://api.x.ai/v1';
 let apiKey = localStorage.getItem('xaiApiKey');
+let selectedModel = localStorage.getItem('xaiModel') || 'gpt-3.5-turbo';
 
 async function initAuth() {
     authClient = await AuthClient.create();
@@ -36,12 +38,15 @@ function handleAuthenticated() {
 
 function showApiKeyModal() {
     apiKeyModal.style.display = 'block';
+    modelSelect.value = selectedModel;
 }
 
 saveApiKeyButton.addEventListener('click', () => {
     apiKey = apiKeyInput.value.trim();
+    selectedModel = modelSelect.value;
     if (apiKey) {
         localStorage.setItem('xaiApiKey', apiKey);
+        localStorage.setItem('xaiModel', selectedModel);
         apiKeyModal.style.display = 'none';
     } else {
         alert('Please enter a valid API key');
@@ -93,8 +98,21 @@ async function handleCommand(command) {
         case '/planning':
             await generatePlan(args.join(' '));
             break;
+        case '/model':
+            changeModel(args[0]);
+            break;
         default:
             appendMessage('System', 'Unknown command. Please try again.');
+    }
+}
+
+function changeModel(model) {
+    if (model && (model === 'gpt-3.5-turbo' || model === 'gpt-4')) {
+        selectedModel = model;
+        localStorage.setItem('xaiModel', selectedModel);
+        appendMessage('System', `Model changed to ${selectedModel}`);
+    } else {
+        appendMessage('System', 'Invalid model. Please use /model gpt-3.5-turbo or /model gpt-4');
     }
 }
 
@@ -103,7 +121,7 @@ async function sendToAI(message) {
         await backend.addMessage(message, true);
         const response = await callXAI(message);
         await backend.addMessage(response, false);
-        appendMessage('Grok', response);
+        appendMessage('AI', response);
     } catch (error) {
         appendMessage('System', `Error: ${error.message}`);
     }
@@ -114,7 +132,7 @@ async function editFiles(files) {
         const instruction = await promptUser('Enter edit instruction:');
         const fileInfo = await backend.editFiles(files, instruction);
         const response = await callXAI(fileInfo);
-        appendMessage('Grok', response);
+        appendMessage('AI', response);
     } catch (error) {
         appendMessage('System', `Error: ${error.message}`);
     }
@@ -123,7 +141,7 @@ async function editFiles(files) {
 async function createFiles(instruction) {
     try {
         const response = await callXAI(`Create files based on instruction: ${instruction}`);
-        appendMessage('Grok', response);
+        appendMessage('AI', response);
     } catch (error) {
         appendMessage('System', `Error: ${error.message}`);
     }
@@ -160,7 +178,7 @@ async function reviewCode(files) {
     try {
         const fileInfo = await backend.reviewCode(files);
         const response = await callXAI(fileInfo);
-        appendMessage('Grok', response);
+        appendMessage('AI', response);
     } catch (error) {
         appendMessage('System', `Error: ${error.message}`);
     }
@@ -169,7 +187,7 @@ async function reviewCode(files) {
 async function generatePlan(instruction) {
     try {
         const response = await callXAI(`Generate a plan for: ${instruction}`);
-        appendMessage('Grok', response);
+        appendMessage('AI', response);
     } catch (error) {
         appendMessage('System', `Error: ${error.message}`);
     }
@@ -203,7 +221,7 @@ async function callXAI(prompt) {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: "grok-1",
+                model: selectedModel,
                 messages: [{ role: "user", content: prompt }],
                 max_tokens: 1000
             })
@@ -217,6 +235,8 @@ async function callXAI(prompt) {
                 apiKey = null;
                 showApiKeyModal();
                 throw new Error('Invalid API key. Please enter a valid API key.');
+            } else if (response.status === 404) {
+                throw new Error(`The selected model (${selectedModel}) is not available. Please choose a different model using the /model command.`);
             }
             throw new Error(`API request failed: ${response.status} ${response.statusText}`);
         }

@@ -64,7 +64,7 @@ body {
     max-width: 500px;
 }
 
-#apiKeyInput {
+#apiKeyInput, #modelSelect {
     width: 100%;
     padding: 10px;
     margin: 10px 0;
