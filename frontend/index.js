@@ -1,9 +1,34 @@
 import { backend } from 'declarations/backend';
+import { AuthClient } from "@dfinity/auth-client";
 
 const chatbox = document.getElementById('chatbox');
 const userInput = document.getElementById('userInput');
 const sendButton = document.getElementById('sendButton');
 const fileContent = document.getElementById('fileContent');
+
+let authClient;
+let identity;
+
+const apiKey = 'YOUR_XAI_API_KEY_HERE'; // Replace with actual API key
+const baseUrl = 'https://api.x.ai/v1';
+
+async function initAuth() {
+    authClient = await AuthClient.create();
+    if (await authClient.isAuthenticated()) {
+        identity = await authClient.getIdentity();
+        handleAuthenticated();
+    } else {
+        await authClient.login({
+            identityProvider: "https://identity.ic0.app/#authorize",
+            onSuccess: handleAuthenticated,
+        });
+    }
+}
+
+function handleAuthenticated() {
+    console.log("Authenticated");
+    // Enable UI elements or perform post-authentication actions here
+}
 
 sendButton.addEventListener('click', handleUserInput);
 userInput.addEventListener('keypress', (e) => {
@@ -57,7 +82,9 @@ async function handleCommand(command) {
 
 async function sendToAI(message) {
     try {
-        const response = await backend.chatWithAI(message);
+        await backend.addMessage(message, true);
+        const response = await callXAI(message);
+        await backend.addMessage(response, false);
         appendMessage('Grok', response);
     } catch (error) {
         appendMessage('System', `Error: ${error.message}`);
@@ -67,7 +94,8 @@ async function sendToAI(message) {
 async function editFiles(files) {
     try {
         const instruction = await promptUser('Enter edit instruction:');
-        const response = await backend.editFiles(files, instruction);
+        const fileInfo = await backend.editFiles(files, instruction);
+        const response = await callXAI(fileInfo);
         appendMessage('Grok', response);
     } catch (error) {
         appendMessage('System', `Error: ${error.message}`);
@@ -76,7 +104,7 @@ async function editFiles(files) {
 
 async function createFiles(instruction) {
     try {
-        const response = await backend.createFiles(instruction);
+        const response = await callXAI(`Create files based on instruction: ${instruction}`);
         appendMessage('Grok', response);
     } catch (error) {
         appendMessage('System', `Error: ${error.message}`);
@@ -112,7 +140,8 @@ async function resetContext() {
 
 async function reviewCode(files) {
     try {
-        const response = await backend.reviewCode(files);
+        const fileInfo = await backend.reviewCode(files);
+        const response = await callXAI(fileInfo);
         appendMessage('Grok', response);
     } catch (error) {
         appendMessage('System', `Error: ${error.message}`);
@@ -121,7 +150,7 @@ async function reviewCode(files) {
 
 async function generatePlan(instruction) {
     try {
-        const response = await backend.generatePlan(instruction);
+        const response = await callXAI(`Generate a plan for: ${instruction}`);
         appendMessage('Grok', response);
     } catch (error) {
         appendMessage('System', `Error: ${error.message}`);
@@ -141,3 +170,26 @@ function promptUser(message) {
         resolve(userResponse);
     });
 }
+
+async function callXAI(prompt) {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+            model: "grok-beta",
+            messages: [{ role: "user", content: prompt }]
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
+
+initAuth();

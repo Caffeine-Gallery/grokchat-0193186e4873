@@ -4,10 +4,9 @@ import type { IDL } from '@dfinity/candid';
 
 export interface _SERVICE {
   'addFiles' : ActorMethod<[Array<string>], string>,
-  'chatWithAI' : ActorMethod<[string], string>,
-  'createFiles' : ActorMethod<[string], string>,
+  'addMessage' : ActorMethod<[string, boolean], undefined>,
   'editFiles' : ActorMethod<[Array<string>, string], string>,
-  'generatePlan' : ActorMethod<[string], string>,
+  'getConversationHistory' : ActorMethod<[], Array<string>>,
   'getLastResponse' : ActorMethod<[], string>,
   'resetContext' : ActorMethod<[], undefined>,
   'reviewCode' : ActorMethod<[Array<string>], string>,

@@ -1,8 +1,10 @@
-import Int "mo:base/Int";
+import Bool "mo:base/Bool";
 
 import Array "mo:base/Array";
 import Text "mo:base/Text";
 import Option "mo:base/Option";
+import Debug "mo:base/Debug";
+import Nat "mo:base/Nat";
 
 actor {
     type FileContent = {
@@ -10,37 +12,36 @@ actor {
         content: Text;
     };
 
-    stable var conversationHistory : [Text] = [];
-    stable var addedFiles : [FileContent] = [];
-    stable var lastResponse : ?Text = null;
+    private stable var conversationHistory : [Text] = [];
+    private stable var addedFiles : [FileContent] = [];
+    private stable var lastResponse : ?Text = null;
 
-    public func chatWithAI(message: Text) : async Text {
+    public func addMessage(message: Text, isUser: Bool) : async () {
         conversationHistory := Array.append(conversationHistory, [message]);
-        let response = simulateAIResponse(message);
-        conversationHistory := Array.append(conversationHistory, [response]);
-        lastResponse := ?response;
-        response
+        if (not isUser) {
+            lastResponse := ?message;
+        };
+    };
+
+    public func getConversationHistory() : async [Text] {
+        conversationHistory
     };
 
     public func editFiles(files: [Text], instruction: Text) : async Text {
-        // Simulate file editing process
-        let response = "Edited files: " # Text.join(", ", files.vals()) # "\nInstruction: " # instruction;
-        lastResponse := ?response;
-        response
-    };
-
-    public func createFiles(instruction: Text) : async Text {
-        // Simulate file creation process
-        let response = "Created files based on instruction: " # instruction;
-        lastResponse := ?response;
-        response
+        let fileContents = Array.foldLeft<Text, Text>(files, "", func(acc, file) {
+            switch (getFileContent(file)) {
+                case (?content) { acc # "\n\n" # file # ":\n" # content };
+                case (null) { acc # "\n\n" # file # ": File not found" };
+            };
+        });
+        "Files to edit: " # Text.join(", ", files.vals()) # "\nInstruction: " # instruction # "\n\nFile contents:" # fileContents
     };
 
     public func addFiles(files: [Text]) : async Text {
-        addedFiles := Array.append(addedFiles, Array.map(files, func (file: Text) : FileContent {
-            { path = file; content = "Sample content for " # file }
-        }));
-        "Added " # Int.toText(files.size()) # " file(s) to context."
+        for (file in files.vals()) {
+            addedFiles := Array.append(addedFiles, [{ path = file; content = "Sample content for " # file }]);
+        };
+        "Added " # Nat.toText(files.size()) # " file(s) to context."
     };
 
     public func getLastResponse() : async Text {
@@ -54,17 +55,19 @@ actor {
     };
 
     public func reviewCode(files: [Text]) : async Text {
-        // Simulate code review process
-        "Code review for files: " # Text.join(", ", files.vals()) # "\n\nNo issues found. Great job!"
+        let fileContents = Array.foldLeft<Text, Text>(files, "", func(acc, file) {
+            switch (getFileContent(file)) {
+                case (?content) { acc # "\n\n" # file # ":\n" # content };
+                case (null) { acc # "\n\n" # file # ": File not found" };
+            };
+        });
+        "Review code for files: " # Text.join(", ", files.vals()) # "\n\nFile contents:" # fileContents
     };
 
-    public func generatePlan(instruction: Text) : async Text {
-        // Simulate plan generation
-        "Plan for: " # instruction # "\n\n1. Analyze requirements\n2. Design solution\n3. Implement features\n4. Test thoroughly\n5. Deploy and monitor"
-    };
-
-    private func simulateAIResponse(message: Text) : Text {
-        // This is a simple simulation of AI response generation
-        "I understood your message: \"" # message # "\". How can I assist you further?"
+    private func getFileContent(path: Text) : ?Text {
+        Option.map<FileContent, Text>(
+            Array.find<FileContent>(addedFiles, func(file) { file.path == path }),
+            func(file : FileContent) { file.content }
+        )
     };
 }
