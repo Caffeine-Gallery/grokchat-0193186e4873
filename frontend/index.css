@@ -25,13 +25,13 @@ body {
 }
 
 #userInput {
-    width: calc(100% - 80px);
+    width: calc(100% - 160px);
     padding: 10px;
     border: none;
     outline: none;
 }
 
-#sendButton {
+#sendButton, #configButton {
     width: 80px;
     padding: 10px;
     background-color: #007bff;
@@ -40,7 +40,7 @@ body {
     cursor: pointer;
 }
 
-#sendButton:hover {
+#sendButton:hover, #configButton:hover {
     background-color: #0056b3;
 }
 
@@ -64,13 +64,13 @@ body {
     max-width: 500px;
 }
 
-#apiKeyInput, #modelSelect {
+#apiKeyInput, #modelInput {
     width: 100%;
     padding: 10px;
     margin: 10px 0;
 }
 
-#saveApiKey {
+#saveApiConfig {
     padding: 10px 20px;
     background-color: #4CAF50;
     color: white;
@@ -78,6 +78,6 @@ body {
     cursor: pointer;
 }
 
-#saveApiKey:hover {
+#saveApiConfig:hover {
     background-color: #45a049;
 }

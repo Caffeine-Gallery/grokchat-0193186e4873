@@ -4,17 +4,18 @@ import { AuthClient } from "@dfinity/auth-client";
 const chatbox = document.getElementById('chatbox');
 const userInput = document.getElementById('userInput');
 const sendButton = document.getElementById('sendButton');
+const configButton = document.getElementById('configButton');
 const apiKeyModal = document.getElementById('apiKeyModal');
 const apiKeyInput = document.getElementById('apiKeyInput');
-const modelSelect = document.getElementById('modelSelect');
-const saveApiKeyButton = document.getElementById('saveApiKey');
+const modelInput = document.getElementById('modelInput');
+const saveApiConfigButton = document.getElementById('saveApiConfig');
 
 let authClient;
 let identity;
 
 const baseUrl = 'https://api.x.ai/v1';
 let apiKey = localStorage.getItem('xaiApiKey');
-let selectedModel = localStorage.getItem('xaiModel') || 'gpt-3.5-turbo';
+let selectedModel = localStorage.getItem('xaiModel') || '';
 
 async function initAuth() {
     authClient = await AuthClient.create();
@@ -31,27 +32,31 @@ async function initAuth() {
 
 function handleAuthenticated() {
     console.log("Authenticated");
-    if (!apiKey) {
+    if (!apiKey || !selectedModel) {
         showApiKeyModal();
     }
 }
 
 function showApiKeyModal() {
     apiKeyModal.style.display = 'block';
-    modelSelect.value = selectedModel;
+    apiKeyInput.value = apiKey || '';
+    modelInput.value = selectedModel || '';
 }
 
-saveApiKeyButton.addEventListener('click', () => {
+saveApiConfigButton.addEventListener('click', () => {
     apiKey = apiKeyInput.value.trim();
-    selectedModel = modelSelect.value;
-    if (apiKey) {
+    selectedModel = modelInput.value.trim();
+    if (apiKey && selectedModel) {
         localStorage.setItem('xaiApiKey', apiKey);
         localStorage.setItem('xaiModel', selectedModel);
         apiKeyModal.style.display = 'none';
+        appendMessage('System', `API configuration updated. Using model: ${selectedModel}`);
     } else {
-        alert('Please enter a valid API key');
+        alert('Please enter both API key and model name');
     }
 });
+
+configButton.addEventListener('click', showApiKeyModal);
 
 sendButton.addEventListener('click', handleUserInput);
 userInput.addEventListener('keypress', (e) => {
@@ -98,21 +103,11 @@ async function handleCommand(command) {
         case '/planning':
             await generatePlan(args.join(' '));
             break;
-        case '/model':
-            changeModel(args[0]);
+        case '/config':
+            showApiKeyModal();
             break;
         default:
             appendMessage('System', 'Unknown command. Please try again.');
-    }
-}
-
-function changeModel(model) {
-    if (model && (model === 'gpt-3.5-turbo' || model === 'gpt-4')) {
-        selectedModel = model;
-        localStorage.setItem('xaiModel', selectedModel);
-        appendMessage('System', `Model changed to ${selectedModel}`);
-    } else {
-        appendMessage('System', 'Invalid model. Please use /model gpt-3.5-turbo or /model gpt-4');
     }
 }
 
@@ -208,9 +203,9 @@ function promptUser(message) {
 }
 
 async function callXAI(prompt) {
-    if (!apiKey) {
+    if (!apiKey || !selectedModel) {
         showApiKeyModal();
-        throw new Error('Please set your X.ai API key first.');
+        throw new Error('Please set your X.ai API key and model name first.');
     }
 
     try {
@@ -236,7 +231,7 @@ async function callXAI(prompt) {
                 showApiKeyModal();
                 throw new Error('Invalid API key. Please enter a valid API key.');
             } else if (response.status === 404) {
-                throw new Error(`The selected model (${selectedModel}) is not available. Please choose a different model using the /model command.`);
+                throw new Error(`The selected model (${selectedModel}) is not available. Please update your configuration with a valid model name.`);
             }
             throw new Error(`API request failed: ${response.status} ${response.statusText}`);
         }
@@ -248,7 +243,7 @@ async function callXAI(prompt) {
         return data.choices[0].message.content;
     } catch (error) {
         console.error('Error calling X.ai API:', error);
-        throw new Error('Failed to get response from AI. Please try again.');
+        throw new Error('Failed to get response from AI. Please check your API configuration and try again.');
     }
 }
 
