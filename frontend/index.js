@@ -172,24 +172,35 @@ function promptUser(message) {
 }
 
 async function callXAI(prompt) {
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-            model: "grok-beta",
-            messages: [{ role: "user", content: prompt }]
-        })
-    });
+    try {
+        const response = await fetch(`${baseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: "grok-1",
+                messages: [{ role: "user", content: prompt }],
+                max_tokens: 1000
+            })
+        });
 
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+            const errorData = await response.text();
+            console.error('API Error:', response.status, errorData);
+            throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        if (!data.choices || data.choices.length === 0) {
+            throw new Error('No response from AI');
+        }
+        return data.choices[0].message.content;
+    } catch (error) {
+        console.error('Error calling X.ai API:', error);
+        throw new Error('Failed to get response from AI. Please try again.');
     }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
 }
 
 initAuth();
