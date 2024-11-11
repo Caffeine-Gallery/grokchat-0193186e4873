@@ -1,12 +1,11 @@
 export const idlFactory = ({ IDL }) => {
+  const Message = IDL.Record({ 'id' : IDL.Nat, 'content' : IDL.Text });
   return IDL.Service({
-    'addFiles' : IDL.Func([IDL.Vec(IDL.Text)], [IDL.Text], []),
-    'addMessage' : IDL.Func([IDL.Text, IDL.Bool], [], []),
-    'editFiles' : IDL.Func([IDL.Vec(IDL.Text), IDL.Text], [IDL.Text], []),
-    'getConversationHistory' : IDL.Func([], [IDL.Vec(IDL.Text)], []),
-    'getLastResponse' : IDL.Func([], [IDL.Text], []),
-    'resetContext' : IDL.Func([], [], []),
-    'reviewCode' : IDL.Func([IDL.Vec(IDL.Text)], [IDL.Text], []),
+    'addMessage' : IDL.Func([IDL.Text], [IDL.Nat], []),
+    'deleteMessage' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+    'getMessage' : IDL.Func([IDL.Nat], [IDL.Opt(Message)], ['query']),
+    'getMessages' : IDL.Func([], [IDL.Vec(Message)], ['query']),
+    'updateMessage' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Bool], []),
   });
 };
 export const init = ({ IDL }) => { return []; };

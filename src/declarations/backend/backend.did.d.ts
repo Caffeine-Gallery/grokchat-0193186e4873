@@ -2,14 +2,13 @@ import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
 
+export interface Message { 'id' : bigint, 'content' : string }
 export interface _SERVICE {
-  'addFiles' : ActorMethod<[Array<string>], string>,
-  'addMessage' : ActorMethod<[string, boolean], undefined>,
-  'editFiles' : ActorMethod<[Array<string>, string], string>,
-  'getConversationHistory' : ActorMethod<[], Array<string>>,
-  'getLastResponse' : ActorMethod<[], string>,
-  'resetContext' : ActorMethod<[], undefined>,
-  'reviewCode' : ActorMethod<[Array<string>], string>,
+  'addMessage' : ActorMethod<[string], bigint>,
+  'deleteMessage' : ActorMethod<[bigint], boolean>,
+  'getMessage' : ActorMethod<[bigint], [] | [Message]>,
+  'getMessages' : ActorMethod<[], Array<Message>>,
+  'updateMessage' : ActorMethod<[bigint, string], boolean>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

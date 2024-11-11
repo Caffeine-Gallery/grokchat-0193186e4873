@@ -1,9 +1,12 @@
+type Message = 
+ record {
+   content: text;
+   id: nat;
+ };
 service : {
-  addFiles: (vec text) -> (text);
-  addMessage: (text, bool) -> ();
-  editFiles: (vec text, text) -> (text);
-  getConversationHistory: () -> (vec text);
-  getLastResponse: () -> (text);
-  resetContext: () -> ();
-  reviewCode: (vec text) -> (text);
+  addMessage: (text) -> (nat);
+  deleteMessage: (nat) -> (bool);
+  getMessage: (nat) -> (opt Message) query;
+  getMessages: () -> (vec Message) query;
+  updateMessage: (nat, text) -> (bool);
 }
