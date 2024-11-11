@@ -211,7 +211,7 @@ function appendMessage(sender, message) {
                 const copyButton = document.createElement('button');
                 copyButton.className = 'copy-button';
                 copyButton.textContent = 'Copy';
-                copyButton.onclick = () => copyToClipboard(code);
+                copyButton.onclick = () => copyToClipboard(code, copyButton);
                 
                 const codeWrapper = document.createElement('div');
                 codeWrapper.className = 'code-wrapper';
@@ -236,23 +236,36 @@ function appendMessage(sender, message) {
 }
 
 function highlightSyntax(code) {
-    // This is a basic syntax highlighting function.
-    // You can expand this to cover more programming constructs and languages.
-    const keywords = ['function', 'const', 'let', 'var', 'if', 'else', 'for', 'while', 'return'];
+    const keywords = ['function', 'const', 'let', 'var', 'if', 'else', 'for', 'while', 'return', 'async', 'await', 'try', 'catch', 'class', 'import', 'export', 'from', 'switch', 'case', 'default', 'break', 'continue'];
+    const types = ['string', 'number', 'boolean', 'null', 'undefined', 'Symbol', 'BigInt', 'Object', 'Array'];
+    const builtins = ['console', 'Math', 'Date', 'JSON', 'Promise', 'RegExp', 'Error'];
+    
     const keywordRegex = new RegExp('\\b(' + keywords.join('|') + ')\\b', 'g');
+    const typeRegex = new RegExp('\\b(' + types.join('|') + ')\\b', 'g');
+    const builtinRegex = new RegExp('\\b(' + builtins.join('|') + ')\\b', 'g');
     const stringRegex = /(".*?"|'.*?'|`.*?`)/g;
     const commentRegex = /(\/\/.*|\/\*[\s\S]*?\*\/)/g;
+    const numberRegex = /\b(\d+(\.\d+)?)\b/g;
     
     code = code.replace(keywordRegex, '<span class="keyword">$1</span>');
+    code = code.replace(typeRegex, '<span class="type">$1</span>');
+    code = code.replace(builtinRegex, '<span class="builtin">$1</span>');
     code = code.replace(stringRegex, '<span class="string">$1</span>');
     code = code.replace(commentRegex, '<span class="comment">$1</span>');
+    code = code.replace(numberRegex, '<span class="number">$1</span>');
     
     return code;
 }
 
-function copyToClipboard(text) {
+function copyToClipboard(text, button) {
     navigator.clipboard.writeText(text).then(() => {
-        alert('Code copied to clipboard!');
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.classList.add('copied');
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.classList.remove('copied');
+        }, 2000);
     }).catch(err => {
         console.error('Failed to copy: ', err);
     });
